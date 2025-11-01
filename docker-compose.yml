@@ -1,0 +1,48 @@
+version: "3.8"
+
+services:
+  n8n:
+    image: n8nio/n8n:1.62.3
+    restart: unless-stopped
+    ports:
+      - "5678:5678"
+    environment:
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE:-UTC}
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - N8N_HOST=${N8N_HOST:-n8n}
+      - WEBHOOK_URL=${WEBHOOK_URL:-http://localhost:5678/}
+      - N8N_BASIC_AUTH_ACTIVE=${N8N_BASIC_AUTH_ACTIVE:-true}
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-admin}
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./workflows:/workflows:ro
+    command: >
+      /bin/sh -c "if ls /workflows/*.json >/dev/null 2>&1; then
+        echo 'Importing workflows from /workflows...';
+        n8n import:workflow --input=/workflows --separate --replaceExisting;
+      else
+        echo 'No workflow JSON files found in /workflows.';
+      fi;
+      n8n start"
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    depends_on:
+      - n8n
+    environment:
+      - NGROK_AUTHTOKEN=${NGROK_AUTHTOKEN:-}
+      - NGROK_DOMAIN=${NGROK_DOMAIN:-}
+    command: >
+      sh -c "if [ -n \"${NGROK_DOMAIN}\" ]; then
+        exec ngrok http --domain=${NGROK_DOMAIN} n8n:5678;
+      else
+        exec ngrok http n8n:5678;
+      fi"
+    ports:
+      - "4040:4040"
+
+volumes:
+  n8n_data:
