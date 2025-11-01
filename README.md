@@ -11,7 +11,7 @@ This repository provides a ready-to-run local environment for managing n8n workf
    Update `.env` with your preferred credentials. Set `NGROK_AUTHTOKEN` if you plan to expose webhooks through ngrok.
 
 2. **Add workflows**
-   Place your exported n8n workflow JSON files inside the `workflows/` directory. They will be imported on container start. The repository keeps an empty `.gitkeep` file so the folder remains committed—feel free to remove it once actual workflows are present.
+   Place your exported n8n workflow JSON files inside the `workflows/` directory. They will be imported on container start. The repository now ships with an example `Ensure_User.json` workflow to demonstrate the expected format—replace or extend it with your own exports.
 
 3. **Run the stack**
    ```bash
